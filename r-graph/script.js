@@ -17,7 +17,7 @@ class Tag {
   }
 
   create() {
-    this.element = document.createElement(this.tag)
+    this.element = document.createElementNS(this.URI, this.tag)
     return this
   }
 
@@ -67,40 +67,153 @@ class Tag {
 // size = 8
 class Radar {
   constructor(json) {
-    this.percents = json['percents']
+    this.percents   = json['percents']
     this.colorCodes = json['colors']
-    this.width = json['width']
-    this.height = json['height']
-    this.size = json['size']
-    this.vertices = json['vertices']
-    this.radii = this.getRadii()
-    this.colors = this.getColors()
+    this.width      = json['width']
+    this.height     = json['height']
+    this.size       = json['size']
+    this.vertices   = json['vertices']
+    this.categories = json['categories']
+
+    this.radii      = this.getRadii()
+    this.colors     = this.getColors()
+
+    this.polyPoints   = {}
+    this.grids      = {}
   }
 
-  key(index) {
-    return Math.round((1.2 - 0.2 * index) * 100) / 100
+  draw() {
+    this.polyPoints = this.polygon()
+    this.grids = this.grid(this.polyPoints)
+
+    var star = this.star(this.polyPoints['_100']['points'])
+    Object.assign(this.grids, star)
+    return this.build()
   }
+
+  build() {
+    var width     = this.width
+    var height    = this.height
+    var viewBox   = `0 0 ${width} ${height}`
+    var svgProps  = {
+                    svg: ['svg', { class: '-radar', width, height, viewBox }, '', ''],
+                    g: ['g', '', '', '']
+                  }
+    var svg       = new Tag(svgProps['svg']).get()
+    var g         = new Tag(svgProps['g']).get()
+    Object.keys(this.grids).map(key => {
+      var key_el = new Tag(this.grids[key]).get()
+      g.appendChild(key_el)
+    })
+    svg.appendChild(g)
+    return svg
+  }
+
+  // grid replaces setOctGrids
+  grid(polyPoints) {
+    var polyPoint = {}
+    this.getKeys().map(key => {
+      var style = this.value(key, polyPoints)
+      polyPoint[key] = ['polygon', { class: '-polygon', points: polyPoints[key]['points'].join(',')  }, { style }, '']
+      // return {
+        // shape: 'polygon',
+        // attributes: [
+        //   { name: 'points', value: polyPoints[key]['points'].join(',') },
+        //   { name: 'style', value },
+        // ],
+        // props: {
+        //   shape: ['polygon', { class: '-polygon' }, { style: value }, '', '']
+        // }
+      // }
+    })
+    return polyPoint
+  }
+
+  star(vertices) {
+    var star = {}
+    vertices.map((item, idx) => {
+      var style = 'stroke:#5e5e5e;stroke-width:0.5', d = `M 0 0 L ${item}`
+      star[`star-${idx}`] = ['path', { d, class: '-d' }, { style }, '']
+      // return {
+      //   shape: 'path',
+      //   attributes: [
+      //     { name: 'd', value: `M 0 0 L ${item}` },
+      //     { name: 'style', value: 'stroke:#5e5e5e;stroke-width:0.5' }
+      //   ]
+      // }
+    })
+    return star
+  }
+
+  // polygon replaces createOctagonArrays
+  polygon() {
+    var self = this, json = {}
+    this.getKeys().map(key => {
+      json[key] = { color: self.colors[key], points: self.points(self.radii[key]) }
+    })
+    return json
+  }
+
+  points(radii) {
+    var a = 0, b = 0, self = this;
+    var theta = Math.PI / 2, dTheta = 2 * (Math.PI / this.size)
+    return radii.map(radius => { 
+      var coordinate = this.coordinate({ radius, a, b, theta })
+      theta += dTheta
+      return coordinate
+    })
+  }
+
+  coordinate(json) {
+    var cosJson = {...json, trig: 'cos', side: json['a']}
+    var sinJson = {...json, trig: 'sin', side: json['b']}
+    var xLen = this.length(cosJson)
+    var yLen = this.length(sinJson)
+    return `${xLen} ${yLen}`
+  }
+
+  length(json) {
+    var angle = Math[json['trig']](json['theta'])
+    return Math.round(json['side'] + json['radius'] * angle)
+  }
+
+  value(key, polyPoints) {
+    if (key === '_0')
+      return `stroke:#000;stroke-width:8;fill:none`
+    return `stroke:#5e5e5e;stroke-width:1;fill:${polyPoints[key]['color']}`
+  }
+
+  getKeys() {
+    return this.percents.map((_, idx) => `_${100 * this.key(idx + 1)}`)
+  }
+
+  key(index) { return this.twoDP(1.2 - 0.2 * index) }
 
   getRadii() {
-    // var list = this.percents.map((percent, idx) => {
-    //   var obj = {}
-    //   obj[`_${100 * this.key(idx)}`] = Array(this.size).fill(percent * this.width)
-    //   return obj
-    // })
     var list = this.polygonMap(this.percents, this.polygonFormula)
-    var proportion = this.vertices.map(vertex => vertex * this.width)
-    list.push({ vertices: proportion })
+    list.push({ vertices: this.vertices.map(vertex => this.vertexWidth(vertex)) })
     return Object.assign({}, ...list)
   }
 
+  vertexWidth(vertex) { return this.twoDP(vertex * this.width) }
+
+  getColors() {
+    var list = this.polygonMap(this.colorCodes, this.colorFormula)
+    list.push({ vertices: 'none' })
+    return Object.assign({}, ...list)
+  }
+
+  twoDP(value) {  return Math.round(value * 100) / 100 }
+
   polygonFormula(value, radar) {
+    if (value === 0) 
+      return radar.vertices.map(vertex => radar.twoDP(vertex * radar.width))
     return Array(radar.size).fill(value * radar.width)
   }
 
-  colorFormula(value) {
-    return value
-  }
+  colorFormula(value) { return value }
 
+  // to refactor polygonMap() with getKeys()
   polygonMap(list, formula) {
     var self = this
     return list.map((item, idx) => {
@@ -109,20 +222,7 @@ class Radar {
       return obj
     })
   }
-
-  getColors() {
-    // var list = this.colors.map((color, idx) => {
-    //   var obj = {}
-    //   obj[`_${100 * this.key(idx)}`] = color
-    //   return obj
-    // })
-    var list = this.polygonMap(this.colorCodes, this.colorFormula)
-    list.push({ vertices: 'none' })
-    return Object.assign({}, ...list)
-  }
 }
-
-
 
 class RGraph {
   constructor(width, height, vertices) {
@@ -170,6 +270,7 @@ class RGraph {
         color: self.colors[key], points: self.createOctagon(self.radii[key])
       };
     });
+    console.log('octagons', self.octagons)
   }
 
   createOctagon(radii) {
@@ -263,16 +364,21 @@ class RGraph {
   }
 }
 
-// var vertices = [0.5, 0.45, 0.8, 0.3, 0.44, 0.33, 0.4, 0.35]
-// var rGraph = new RGraph(320, 320, vertices)
+var vertices = [0.5, 0.45, 0.8, 0.363, 0.44, 0.33, 0.4, 0.35]
+var rGraph = new RGraph(320, 320, vertices)
+rGraph.draw()
 
 var json = {
-  vertices: [0.5, 0.45, 0.8, 0.3, 0.44, 0.33, 0.4, 0.35],
-  percents: [1, 0.8, 0.6, 0.4, 0.2],
-  colors: ['#94c277', '#bee894', '#f3f2a2', '#f1c354', '#f07377'],
+  vertices: [0.5, 0.45, 0.8, 0.363, 0.44, 0.33, 0.4, 0.35],
+  percents: [1, 0.8, 0.6, 0.4, 0.2, 0],
+  colors: ['#94c277', '#bee894', '#f3f2a2', '#f1c354', '#f07377', '#000'],
   size: 8,
   width: 320,
-  height: 320
+  height: 320,
+  categories: [
+    'bible', 'maths', 'software design', 'yoruba',
+    'music', 'physics', 'engineering', 'hardware design'
+  ]
 }
 
-console.log('radar', new Radar(json))
+console.log('radar', new Radar(json).draw())
