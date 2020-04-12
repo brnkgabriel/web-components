@@ -1,4 +1,4 @@
-// M-Select Notes
+// R-Graph Notes
 // - the attributes must be in single quotes
 //   so that the list attribute can accomodate JSON in double quotes
 //   example: <m-select value='0' list='[{"x": "twenty"}]'></m-select>
@@ -10,193 +10,21 @@ var styles = document.createElement('template')
 var styleArray = [
   `
     <style>
-
-    .drop {
-      display: block;
-      position: absolute;
-      background: #ccc;
-      border-radius: 100%;
-      transform: scale(0);
-      pointer-events: none;
-      width: 100%;
-      height: 100%;
-    }
-
-    .drop.animate {
-      animation: drop 1s ease-out;
-    }
-
-    @keyframes drop {
-      100% {
-        opacity: 0;
-        transform: scale(2.5)
-      }
-    }
-
-    .materialSelect {
-      height: 70px;
-      position: relative;
-      text-align: center;
-      margin-bottom: 10px;
-      width: 42%;
-      font-family: var(--font);
-      font-weight: bold
-    }
-
-    .materialSelect.error .select:not(.isOpen) {
-      border: 1px solid #dd2c00 !important;
-    }
-
-    .materialSelect.error .message {
-      display: block
-    }
-
-    .materialSelect.inline {
-      float: none !important;
+    .-chart {
+      width: 320px;
+      height: 320px;
       display: inline-block;
-      z-index: 0;
-      min-width: 100px;
-      width: 250px;
     }
-
-    .materialSelect.inline .select {
-      transform: translate(0, 0);
-      top: 0;
-      left: 0;
-      margin: 0;
-      transition: all .2s !important;
-      width: 100%;
+    
+    .-chart svg g {
+      transform: translate(50%,50%) scale(0.4)
     }
-
-    .materialSelect.inline .select.isOpen {
-      transform: translate(0, -50%);
-      top: 50%;
+    
+    .-chart svg g text {
+      font-size: 2em;
+      text-transform: uppercase;
+      dominant-baseline: central
     }
-
-    .materialSelect:not(.inline) {
-      width: 250px;
-    }
-
-    .materialSelect:not(.inline).select {
-      width: 250px;
-      margin-left: 50%;
-      transform: translate(-50%, 0)
-    }
-
-    .materialSelect .select {
-      position: absolute;
-      margin: 0;
-      padding: 0;
-      top: -1px;
-      user-select: none;
-      width: 250px;
-      text-align: center;
-      margin: 0px auto;
-      z-index: 9999;
-      height: 48px;
-      overflow: hidden;
-      border: 1px solid rgba(0,0,0,0);
-      box-shadow: 0 0 0 0 rgba(0,0,0,0);
-      background-color: white;
-      margin-left: 0;
-      transform: none;
-    }
-
-    .materialSelect .select::after {
-      border-left: 5px solid transparent;
-      border-right: 5px solid transparent;
-      border-top: 5px solid #bbb;
-      content: '';
-      display: block;
-      height: 0px;
-      position: absolute;
-      pointer-events: none;
-      top: 19px;
-      right: 10px;
-      width: 0px;
-    }
-
-    .materialSelect .select li {
-      cursor: pointer;
-      font-size: 15px;
-      list-style: none;
-      line-height: 48px;
-      padding: 0 48px 0 24px;
-      position: relative;
-      overflow: hidden
-    }
-
-    .materialSelect .select li[data-selected] {
-      height: 48px;
-    }
-
-    .materialSelect .select li:not([data-selected]) {
-      height: 0px;
-      opacity: 0;
-    }
-
-    .materialSelect .select.isOpen {
-      background-color: #fafafa;
-      border-radius: 2px;
-      box-shadow: 1px 2px 3px 1px rgba(0,0,0,0.3);
-      padding-bottom: 16px;
-      top: -96px;
-      height: 250px;
-      z-index: 99999;
-    }
-
-    .materialSelect .select.isOpen::after {
-      display: none;
-    }
-
-    .materialSelect .select.isOpen::before {
-      border-color: transparent !important;
-    }
-
-    .materialSelect .select.isOpen li {
-      height: 48px;
-      opacity: 1;
-    }
-
-    .materialSelect .select.isOpen li[data-selected] {
-      color: #e91e63;
-    }
-
-    .materialSelect .select.isOpen li:hover {
-      background-color: #eee;
-    }
-
-    .materialSelect .select.isOpen li:active {
-      background-color: #dbdbdb;
-    }
-
-    .materialSelect .select:not(.isOpen):hover {
-      background-color: #f7f7f7;
-      border-top: 1px solid #cdcdcd;
-      border-bottom: 1px solid #cdcdcd;
-    }
-
-    .materialSelect .select:not(.isOpen):active {
-      box-shadow: 1px 2px 1px 0 rgba(0,0,0,0.3)
-    }
-
-    .materialSelect .select + .select::before {
-      border-left: thin solid #c8c8c8;
-      content: '';
-      height: 32px;
-      left: 0;
-      position: absolute;
-      top: 8px;
-    }
-
-    .materialSelect .message {
-      position: absolute;
-      top: 50px;
-      width: 100%;
-      color: #dd2c00;
-      display: none;
-    }
-
     </style>
   `
 ]
@@ -205,11 +33,12 @@ styles.innerHTML = styleArray[0]
 
 class Tag {
   constructor(properties) {
-    this.tag = properties[0]
-    this.attributes = properties[1]
-    this.styles = properties[2]
-    this.textContent = properties[3]
-    this.element = null
+    this.URI          = "http://www.w3.org/2000/svg"
+    this.tag          = properties[0]
+    this.attributes   = properties[1]
+    this.styles       = properties[2]
+    this.textContent  = properties[3]
+    this.element      = null
   }
 
   get() {
@@ -221,7 +50,7 @@ class Tag {
   }
 
   create() {
-    this.element = document.createElement(this.tag)
+    this.element = document.createElementNS(this.URI, this.tag)
     return this
   }
 
@@ -258,41 +87,269 @@ class Tag {
 
 }
 
+// var json = {
+//   vertices: [0.5, 0.45, 0.8, 0.363, 0.44, 0.33, 0.4, 0.35],
+//   percents: [1, 0.8, 0.6, 0.4, 0.2, 0],
+//   colors: ['#94c277', '#bee894', '#f3f2a2', '#f1c354', '#f07377', '#000'],
+//   size: 8,
+//   width: 320,
+//   height: 320,
+//   categories: [
+//     'bible', 'maths', 'software design', 'yoruba',
+//     'music', 'physics', 'engineering', 'hardware design'
+//   ]
+// }
+// vertices must follow the same order as categories
+// key(index) is gotten from percents above as follows
+// percent is an arithmetic progression: ap = a + (n-1)d
+// a = 1, n = variable index, d = -0.2
+// ap(1) = 1 + (1 - 1) * -0.2 = 1
+// ap(2) = 1 + (2 - 1) * -0.2 = 1 + (-0.2) = 0.8
+// ap(3) = 1 + (3 - 1) * -0.2 = 1 + (-0.4) = 0.6
+// ap(n) = 1 + (n - 1) * -0.2 = 1 + (-0.2n + 0.2) = 1.2 - 0.2n
+// text-anchor corresponds to the horizontal position of the text
+// dominant-baseline corresponds to the vertical position of the text
+class Radar {
+  constructor(json) {
+    this.percents   = json['percents']
+    this.colorCodes = json['colors']
+    this.width      = json['width']
+    this.height     = json['height']
+    this.size       = json['size']
+    this.vertices   = json['vertices']
+    this.categories = json['categories']
+    this.radarEl    = json['el']
 
-class MSelect extends HTMLElement {
+    this.radii      = this.getRadii()
+    this.colors     = this.getColors()
+
+    this.polyPoints = {}
+    this.grids      = {}
+    this.textPos    = {
+                      zero: { 'text-anchor': 'middle', 'dominant-baseline': 'central' },
+                      minus: { 'text-anchor': 'end', 'dominant-baseline': 'alphabetic' },
+                      plus: { 'text-anchor': 'start', 'dominant-baseline': 'hanging' }
+                    }
+
+    this.draw()
+  }
+
+  draw() {
+    this.polyPoints = this.polygon()
+    this.grids = this.grid(this.polyPoints)
+    var star = this.star(this.polyPoints['_100']['points'])
+    var text = this.text(this.polyPoints['_100']['points'])
+
+    Object.assign(this.grids, star)
+    Object.assign(this.grids, text)
+    this.build()
+  }
+
+  build() {
+    var width     = this.width
+    var height    = this.height
+    var viewBox   = `0 0 ${width} ${height}`
+    var svgProps  = {
+                    svg: ['svg', { class: '-radar', width, height, viewBox }, '', ''],
+                    g: ['g', '', '', '']
+                  }
+    var svg       = new Tag(svgProps['svg']).get()
+    var g         = new Tag(svgProps['g']).get()
+    Object.keys(this.grids).map(key => {
+      var key_el = new Tag(this.grids[key]).get()
+      g.appendChild(key_el)
+    })
+    svg.appendChild(g)
+    this.radarEl.appendChild(svg)
+
+    return this
+  }
+
+  // grid replaces setOctGrids
+  grid(polyPoints) {
+    var polyPoint = {}
+    this.getKeys().map(key => {
+      var style = this.value(key, polyPoints)
+      polyPoint[key] = ['polygon', { class: '-polygon', points: polyPoints[key]['points'].join(',')  }, { style }, '']
+    })
+    return polyPoint
+  }
+
+  text(vertices) {
+    var text = {}
+    vertices.map((item, idx) => {
+      var x_y = item.split(' ')
+      text[`text-${idx}`] = [
+        'text', {
+          class:'-svg_txt',
+          x: x_y[0],
+          y: x_y[1]
+        }, { style: this.textStyle(x_y) },
+        this.categories[idx].substring(0, 3)
+      ]
+    })
+    return text
+  }
+
+  textStyle(pieces) {
+    var x     = parseInt(pieces[0])
+    var y     = parseInt(pieces[1])
+    var style = this.getStyle(x, 'text-anchor')
+    style     += this.getStyle(y, 'dominant-baseline')
+    return style
+  }
+
+  getStyle(num, prop) {
+    if (parseInt(num) === 0) {
+      return `${prop}:${this.textPos['zero'][prop]};`
+    } else if (parseInt(num) > 0) {
+      return `${prop}:${this.textPos['plus'][prop]};`
+    } else {
+      return `${prop}:${this.textPos['minus'][prop]};`
+    }
+  }
+
+  star(vertices) {
+    var star = {}
+    vertices.map((item, idx) => {
+      var style = 'stroke:#5e5e5e;stroke-width:0.5', d = `M 0 0 L ${item}`
+      star[`star-${idx}`] = ['path', { d, class: '-d' }, { style }, '']
+    })
+    return star
+  }
+
+  // polygon replaces createOctagonArrays
+  polygon() {
+    var self = this, json = {}
+    this.getKeys().map(key => {
+      json[key] = { color: self.colors[key], points: self.points(self.radii[key]) }
+    })
+    return json
+  }
+
+  points(radii) {
+    var a = 0, b = 0, self = this;
+    var theta = Math.PI / 2, dTheta = 2 * (Math.PI / this.size)
+    return radii.map(radius => { 
+      var coordinate = this.coordinate({ radius, a, b, theta })
+      theta += dTheta
+      return coordinate
+    })
+  }
+
+  coordinate(json) {
+    var cosJson = {...json, trig: 'cos', side: json['a']}
+    var sinJson = {...json, trig: 'sin', side: json['b']}
+    var xLen = this.length(cosJson)
+    var yLen = this.length(sinJson)
+    return `${xLen} ${yLen}`
+  }
+
+  length(json) {
+    var angle = Math[json['trig']](json['theta'])
+    return Math.round(json['side'] + json['radius'] * angle)
+  }
+
+  value(key, polyPoints) {
+    if (key === '_0')
+      return `stroke:#000;stroke-width:8;fill:none`
+    return `stroke:#5e5e5e;stroke-width:1;fill:${polyPoints[key]['color']}`
+  }
+
+  getKeys() {
+    return this.percents.map((_, idx) => `_${100 * this.key(idx + 1)}`)
+  }
+
+  key(index) { return this.twoDP(1.2 - 0.2 * index) }
+
+  getRadii() {
+    var list = this.polygonMap(this.percents, this.polygonFormula)
+    list.push({ vertices: this.vertices.map(vertex => this.vertexWidth(vertex)) })
+    return Object.assign({}, ...list)
+  }
+
+  vertexWidth(vertex) { return this.twoDP(vertex * this.width) }
+
+  getColors() {
+    var list = this.polygonMap(this.colorCodes, this.colorFormula)
+    list.push({ vertices: 'none' })
+    return Object.assign({}, ...list)
+  }
+
+  twoDP(value) {  return Math.round(value * 100) / 100 }
+
+  polygonFormula(value, radar) {
+    if (value === 0) 
+      return radar.vertices.map(vertex => radar.twoDP(vertex * radar.width))
+    return Array(radar.size).fill(value * radar.width)
+  }
+
+  colorFormula(value) { return value }
+
+  // to refactor polygonMap() with getKeys()
+  polygonMap(list, formula) {
+    var self = this
+    return list.map((item, idx) => {
+      var obj = {}
+      obj[`_${100 * this.key(idx + 1)}`] = formula(item, self)
+      return obj
+    })
+  }
+}
+
+
+class RGraph extends HTMLElement {
   constructor() {
     super()
 
     this.attachShadow({ mode: 'open' })
     this.shadowRoot.appendChild(styles.content)
-    this.build()
-    new SelectElement(this.shadowRoot)
-    window.addEventListener('selected', (e) => this.value = e.detail)
+    this.appendParent()
+
+    var el = this.shadowRoot.querySelector('.-chart')
+
+    new Radar(this.json(el))
     // we append child to this.shadowRoot here
   }
 
-  build() {
-    var selectProp = {
-      materialSelect: ['div', { class: 'materialSelect inline' }, '', ''],
-      select: ['ul', { class: 'select' }, '', ''],
+  json(el) {
+    return {
+      vertices: this.vertices,
+      percents: [1, 0.8, 0.6, 0.4, 0.2, 0],
+      colors: ['#94c277', '#bee894', '#f3f2a2', '#f1c354', '#f07377', '#000'],
+      size: this.vertices.length,
+      width: 320,
+      height: 320,
+      categories: this.categories,
+      el: el
     }
-    var materialSelect = new Tag(selectProp['materialSelect']).get()
-    var select = new Tag(selectProp['select']).get()
-    var choose = new Tag(['li', { 'data-selected': true, 'data-value': -1 }, '', 'choose...']).get()
+  }
 
-    select.appendChild(choose)
-    this.list.forEach((item, idx) => {
-      var item_el = new Tag(['li', { 'data-value': idx }, '', item]).get()
-      select.appendChild(item_el)
-    })
-
-    materialSelect.appendChild(select)
-    this.shadowRoot.appendChild(materialSelect)
+  appendParent() {
+    var radarEl = document.createElement('div')
+    radarEl.className = '-chart'
+    this.shadowRoot.appendChild(radarEl)
     // console.log('from build, list is', this.list instanceof Array)
   }
 
   static get observedAttributes() {
-    return ['value', 'list']
+    return ['categories', 'vertices']
+  }
+
+  get categories() {
+    return JSON.parse(this.getAttribute('categories'))
+  }
+
+  get vertices() {
+    return JSON.parse(this.getAttribute('vertices'))
+  }
+
+  set categories(value) {
+    this.setAttribute('categories', value)
+  }
+
+  set vertices(value) {
+    this.setAttribute('vertices', value)
   }
 
   connectedCallback() {
@@ -327,4 +384,4 @@ class MSelect extends HTMLElement {
 
 }
 
-customElements.define('m-select', MSelect)
+customElements.define('r-graph', RGraph)
