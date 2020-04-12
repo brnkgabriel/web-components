@@ -5,5 +5,11 @@
 }
 
 .-chart svg g {
-  transform: translate(50%,50%)
+  transform: translate(50%,50%) scale(0.4)
+}
+
+.-chart svg g text {
+  font-size: 2em;
+  text-transform: uppercase;
+  dominant-baseline: central
 }
