@@ -14,6 +14,8 @@ var styleArray = [
       width: 320px;
       height: 320px;
       display: inline-block;
+      font-family: var(--font);
+      font-weight: bold;
     }
     
     .-chart svg g {
@@ -297,7 +299,6 @@ class Radar {
   }
 }
 
-
 class RGraph extends HTMLElement {
   constructor() {
     super()
@@ -306,9 +307,8 @@ class RGraph extends HTMLElement {
     this.shadowRoot.appendChild(styles.content)
     this.appendParent()
 
-    var el = this.shadowRoot.querySelector('.-chart')
-
-    new Radar(this.json(el))
+    this.el = this.shadowRoot.querySelector('.-chart')
+    new Radar(this.json(this.el))
     // we append child to this.shadowRoot here
   }
 
@@ -375,6 +375,8 @@ class RGraph extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
+    this.el.innerHTML = ""
+    new Radar(this.json(this.el))
     // when Component attribute changes
   }
 
