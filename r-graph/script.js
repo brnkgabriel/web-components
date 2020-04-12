@@ -73,6 +73,8 @@ class Tag {
 // ap(2) = 1 + (2 - 1) * -0.2 = 1 + (-0.2) = 0.8
 // ap(3) = 1 + (3 - 1) * -0.2 = 1 + (-0.4) = 0.6
 // ap(n) = 1 + (n - 1) * -0.2 = 1 + (-0.2n + 0.2) = 1.2 - 0.2n
+// text-anchor corresponds to the horizontal position of the text
+// dominant-baseline corresponds to the vertical position of the text
 class Radar {
   constructor(json) {
     this.percents   = json['percents']
@@ -104,14 +106,7 @@ class Radar {
 
     Object.assign(this.grids, star)
     Object.assign(this.grids, text)
-    this.build().repositionText()
-  }
-
-  repositionText() {
-    var texts = document.querySelectorAll('.-svg_txt')
-    texts.forEach(text => {
-      var boundingBox = text.getBBox()
-    })
+    this.build()
   }
 
   build() {
@@ -155,13 +150,52 @@ class Radar {
   }
 
   text(vertices) {
-    console.log('in text, vertices', vertices)
     var text = {}
     vertices.map((item, idx) => {
       var x_y = item.split(' ')
-      text[`text-${idx}`] = ['text', { class:'-svg_txt', x: x_y[0], y: x_y[1]}, '', this.categories[idx].substring(0, 3)]
+      text[`text-${idx}`] = [
+        'text', {
+          class:'-svg_txt',
+          x: x_y[0],
+          y: x_y[1]
+        }, { style: this.textStyle(x_y) },
+        this.categories[idx].substring(0, 3)
+      ]
     })
     return text
+  }
+
+  textStyle(pieces) {
+    var x     = parseInt(pieces[0])
+    var y     = parseInt(pieces[1])
+    var style = this.getStyle(x, 'text-anchor')
+    style     += this.getStyle(y, 'dominant-baseline')
+    // if (parseInt(x) === 0) {
+    //   style += `text-anchor:${this.textPos['zero']['text-anchor']};`
+    // } else if (parseInt(x) > 0) {
+    //   style += `text-anchor:${this.textPos['plus']['text-anchor']};`
+    // } else if (parseInt(x) < 0) {
+    //   style += `text-anchor:${this.textPos['minus']['text-anchor']};`
+    // }
+
+    // if (parseInt(y) === 0) {
+    //   style += `dominant-baseline:${this.textPos['zero']['dominant-baseline']}`
+    // } else if (parseInt(y) > 0) {
+    //   style += `dominant-baseline:${this.textPos['plus']['dominant-baseline']}`
+    // } else {
+    //   style += `dominant-baseline:${this.textPos['minus']['dominant-baseline']}`
+    // }
+    return style
+  }
+
+  getStyle(num, prop) {
+    if (parseInt(num) === 0) {
+      return `${prop}:${this.textPos['zero'][prop]};`
+    } else if (parseInt(num) > 0) {
+      return `${prop}:${this.textPos['plus'][prop]};`
+    } else {
+      return `${prop}:${this.textPos['minus'][prop]};`
+    }
   }
 
   star(vertices) {
