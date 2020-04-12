@@ -276,6 +276,3 @@ var json = {
 }
 
 console.log('radar', new Radar(json))
-
-// var el = document.querySelector('.-chart')
-// el.appendChild(rGraph.draw())
