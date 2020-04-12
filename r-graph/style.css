@@ -1,0 +1,9 @@
+.-chart {
+  width: 320px;
+  height: 320px;
+  display: inline-block;
+}
+
+.-chart svg g {
+  transform: translate(50%,50%)
+}
