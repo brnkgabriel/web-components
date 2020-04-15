@@ -5,7 +5,7 @@
 // - must set the global --font css variable so the select list takes
 //   the font of the parent
 
-var styles = document.createElement('template')
+var globalId = 0
 
 var styleArray = [
   `
@@ -34,13 +34,12 @@ var styleArray = [
     }
 
     .materialSelect {
-      height: 70px;
       position: relative;
       text-align: center;
-      margin-bottom: 10px;
       width: 42%;
       font-family: var(--font);
-      font-weight: bold
+      font-weight: bold;
+      height: 48px;
     }
 
     .materialSelect.error .select:not(.isOpen) {
@@ -97,7 +96,7 @@ var styleArray = [
       overflow: hidden;
       border: 1px solid rgba(0,0,0,0);
       box-shadow: 0 0 0 0 rgba(0,0,0,0);
-      background-color: white;
+      background-color: rgba(0,0,0,0.3);
       margin-left: 0;
       transform: none;
     }
@@ -123,7 +122,8 @@ var styleArray = [
       line-height: 48px;
       padding: 0 48px 0 24px;
       position: relative;
-      overflow: hidden
+      overflow: hidden;
+      color: white;
     }
 
     .materialSelect .select li[data-selected] {
@@ -136,10 +136,9 @@ var styleArray = [
     }
 
     .materialSelect .select.isOpen {
-      background-color: #fafafa;
+      background-color: rgba(0,0,0,0.3);
       border-radius: 2px;
       box-shadow: 1px 2px 3px 1px rgba(0,0,0,0.3);
-      padding-bottom: 16px;
       top: -96px;
       height: 250px;
       z-index: 99999;
@@ -159,19 +158,19 @@ var styleArray = [
     }
 
     .materialSelect .select.isOpen li[data-selected] {
-      color: #e91e63;
+      color: white;
     }
 
     .materialSelect .select.isOpen li:hover {
-      background-color: #eee;
+      background-color: rgba(0,0,0,0.3);
     }
 
     .materialSelect .select.isOpen li:active {
-      background-color: #dbdbdb;
+      background-color: rgba(0,0,0,0.3);
     }
 
     .materialSelect .select:not(.isOpen):hover {
-      background-color: #f7f7f7;
+      background-color: rgba(0,0,0,0.3);
       border-top: 1px solid #cdcdcd;
       border-bottom: 1px solid #cdcdcd;
     }
@@ -201,15 +200,13 @@ var styleArray = [
   `
 ]
 
-styles.innerHTML = styleArray[0]
-
 class Tag {
   constructor(properties) {
-    this.tag = properties[0]
-    this.attributes = properties[1]
-    this.styles = properties[2]
-    this.textContent = properties[3]
-    this.element = null
+    this.tag          = properties[0]
+    this.attributes   = properties[1]
+    this.styles       = properties[2]
+    this.textContent  = properties[3]
+    this.element      = null
   }
 
   get() {
@@ -259,7 +256,8 @@ class Tag {
 }
 
 class SelectElement {
-  constructor(doc) {
+  constructor(doc, id) {
+    this.id             = id
     this.closeTimeout   = null
     this.selectTimeout  = null
     this.doc            = doc
@@ -269,6 +267,12 @@ class SelectElement {
     this.select         = this.doc.querySelector('.select')
 
     this.init()
+  }
+
+  static setSelected(parent, selected) {
+    var children = parent.querySelectorAll('li')
+    children.forEach(child => child.removeAttribute('data-selected'))
+    selected.setAttribute('data-selected', true)
   }
 
   init() {
@@ -282,8 +286,8 @@ class SelectElement {
   }
 
   trigger(event) {
-    var listItem  = event.target
-    var parent    = listItem.parentElement
+    var listItem = event.target
+    var parent   = listItem.parentElement
 
     this.selectItem(listItem, parent)
     clearTimeout(this.selectTimeout);
@@ -292,16 +296,22 @@ class SelectElement {
   }
   
   selectItem(listItem, parent) {
-    var children  = parent.querySelectorAll('li')
-    children.forEach(child => child.removeAttribute('data-selected'))
-    listItem.setAttribute('data-selected', true)
-    var evt = new CustomEvent('selected', { detail: listItem.textContent })
-    window.dispatchEvent(evt)
+    SelectElement.setSelected(parent, listItem)
+
+    if (!this.isItemTheFirstOnList(listItem)) {
+      var evt = new CustomEvent(`selected-${this.id}`, { detail: listItem.textContent })
+      window.dispatchEvent(evt)
+    }
   }
-  
+
+  isItemTheFirstOnList(listItem) {
+    var value = listItem.getAttribute('data-value')
+    return parseInt(value) === -1
+  }
+
   scroll(parent) {
-    var selected  = this.doc.querySelector('li[data-selected]')
-    var pos       = Math.max((this.index(selected) - 2) * 48, 0)
+    var selected = this.doc.querySelector('li[data-selected]')
+    var pos      = Math.max((this.index(selected) - 2) * 48, 0)
     parent.classList.add('isOpen')
     parent.style.overflow = 'auto'
     parent.scrollTop = pos
@@ -336,20 +346,35 @@ class SelectElement {
 class MSelect extends HTMLElement {
   constructor() {
     super()
-
+    this.id = globalId++
     this.attachShadow({mode: 'open'})
-    this.shadowRoot.appendChild(styles.content)
-    this.build()
-    new SelectElement(this.shadowRoot)
-    window.addEventListener('selected', (e) => this.value = e.detail)
+    this.render()
     // we append child to this.shadowRoot here
   }
 
-  build() {
-    var selectProp = {
-      materialSelect: ['div', { class: 'materialSelect inline' }, '', ''],
-      select        : ['ul', { class: 'select' }, '', ''],
-    }
+  render() {
+    Tag.appendMany2One([this.styles(), this.html()], this.shadowRoot)
+    
+    new SelectElement(this.shadowRoot, this.id)
+    
+    window.addEventListener(`selected-${this.id}`, (e) => {
+      this.value = e.detail
+      var evt = new CustomEvent(`change`, e)
+      this.dispatchEvent(evt)
+    })
+  }
+
+  styles() {
+    var styles = document.createElement('template')
+    styles.innerHTML = styleArray[0]
+    return styles
+  }
+
+  html() {
+    var selectProp      = {
+                          materialSelect: ['div', { class: 'materialSelect inline' }, '', ''],
+                          select        : ['ul', { class: 'select' }, '', ''],
+                        }
     var materialSelect  = new Tag(selectProp['materialSelect']).get()
     var select          = new Tag(selectProp['select']).get()
     var choose          = new Tag(['li', { 'data-selected': true, 'data-value': -1 }, '', 'choose...']).get()
@@ -361,17 +386,11 @@ class MSelect extends HTMLElement {
     })
 
     materialSelect.appendChild(select)
-    this.shadowRoot.appendChild(materialSelect)
-    // console.log('from build, list is', this.list instanceof Array)
+    return materialSelect
   }
 
   static get observedAttributes() {
     return ['value', 'list']
-  }
-
-  connectedCallback() {
-    // when Component is added to the page
-    // listeners on the component automatically go here
   }
 
   get list() {
@@ -383,22 +402,7 @@ class MSelect extends HTMLElement {
   }
 
   disconnectedCallback() {
-    // when Component is removed from the page
-    window.removeEventListener('selected', e => value = e.detail)
+    window.removeEventListener(`selected-${this.id}`, e => value = e.detail)
   }
-
-  adoptedCallback() {
-    // when Component is moved to a new page
-  }
-
-  attributeChangedCallback(name, oldValue, newValue) {
-    // when Component attribute changes
-  }
-
-  get attribute() {
-    // return this.getAttribute('attribute')
-  }
-
 }
-
 customElements.define('m-select', MSelect)

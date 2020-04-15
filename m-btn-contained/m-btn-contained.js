@@ -10,12 +10,6 @@ var styles = document.createElement('template')
 var styleArray = [
   `
     <style>
-    :root {
-      --pure-material-primary-rgb: 255, 153, 0;
-      --pure-material-onprimary-rgb: 255, 255, 255;
-      --pure-material-surface-rgb: 255, 255, 255;
-      --pure-material-onsurface-rgb: 0, 0, 0
-    }
     
     .checkboxes > label,
     .radios > label {
@@ -83,9 +77,9 @@ var styleArray = [
       color: rgb(var(--pure-material-onprimary-rgb, 255, 255, 255));
       background-color: rgb(var(--pure-material-primary-rgb, 33, 150, 243));
       box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 1px 0 rgba(0, 0, 0, 0.12);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      font-family: var(--font);
       font-size: 14px;
-      font-weight: 500;
+      font-weight: bold;
       line-height: 36px;
       overflow: hidden;
       outline: none;
