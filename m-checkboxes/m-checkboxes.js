@@ -1,16 +1,6 @@
 var styleArray = [
   `
     <style>
-
-    @import url('https://fonts.googleapis.com/css?family=Comic+Neue:300,300i,400,400i,700,700i&display=swap');
-
-    :root {
-      --pure-material-primary-rgb: 124, 153, 0;
-      --pure-material-onprimary-rgb: 255, 255, 255;
-      --pure-material-surface-rgb: 255, 255, 255;
-      --pure-material-onsurface-rgb: 0, 0, 0;
-      --font: 'Comic Neue'
-    }
     
     .checkboxes > label,
     .radios > label {

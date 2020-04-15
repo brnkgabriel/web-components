@@ -367,7 +367,7 @@ class MSelect extends HTMLElement {
   styles() {
     var styles = document.createElement('template')
     styles.innerHTML = styleArray[0]
-    return styles
+    return styles.content
   }
 
   html() {

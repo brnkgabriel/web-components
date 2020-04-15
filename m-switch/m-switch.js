@@ -1,16 +1,6 @@
 var styleArray = [
   `
     <style>
-
-    @import url('https://fonts.googleapis.com/css?family=Comic+Neue:300,300i,400,400i,700,700i&display=swap');
-
-    :root {
-      --pure-material-primary-rgb: 124, 153, 0;
-      --pure-material-onprimary-rgb: 255, 255, 255;
-      --pure-material-surface-rgb: 255, 255, 255;
-      --pure-material-onsurface-rgb: 0, 0, 0;
-      --font: 'Comic Neue'
-    }
     
     .checkboxes > label,
     .radios > label {
@@ -68,7 +58,7 @@ var styleArray = [
       position: relative;
       display: inline-block;
       color: rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.87);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      font-family: var(--font);
       font-size: 16px;
       line-height: 1.5;
     }
@@ -99,7 +89,9 @@ var styleArray = [
     .pure-material-switch > span {
       display: inline-block;
       width: 100%;
-      cursor: pointer
+      cursor: pointer;
+      text-transform: capitalize;
+      font-weight: bold;
     }
     
     /* track */ 
