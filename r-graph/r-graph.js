@@ -1,39 +1,5 @@
-// R-Graph Notes
-// - the attributes must be in single quotes
-//   so that the list attribute can accomodate JSON in double quotes
-//   example: <m-select value='0' list='[{"x": "twenty"}]'></m-select>
-// - must set the global --font css variable so the select list takes
-//   the font of the parent
 
-var styles = document.createElement('template')
-
-var styleArray = [
-  `
-    <style>
-    .-chart {
-      width: 320px;
-      height: 320px;
-      display: inline-block;
-      font-family: var(--font);
-      font-weight: bold;
-    }
-    
-    .-chart svg g {
-      transform: translate(50%,50%) scale(0.4)
-    }
-    
-    .-chart svg g text {
-      font-size: 2em;
-      text-transform: uppercase;
-      dominant-baseline: central
-    }
-    </style>
-  `
-]
-
-styles.innerHTML = styleArray[0]
-
-class Tag {
+class TagNS {
   constructor(properties) {
     this.URI          = "http://www.w3.org/2000/svg"
     this.tag          = properties[0]
@@ -88,6 +54,39 @@ class Tag {
   }
 
 }
+// R-Graph Notes
+// - the attributes must be in single quotes
+//   so that the list attribute can accomodate JSON in double quotes
+//   example: <m-select value='0' list='[{"x": "twenty"}]'></m-select>
+// - must set the global --font css variable so the select list takes
+//   the font of the parent
+
+var styles = document.createElement('template')
+
+var styleGraph = [
+  `
+    <style>
+    .-chart {
+      width: 320px;
+      height: 320px;
+      display: inline-block;
+      font-family: var(--font);
+      font-weight: bold;
+    }
+    
+    .-chart svg g {
+      transform: translate(50%,50%) scale(0.4)
+    }
+    
+    .-chart svg g text {
+      font-size: 2em;
+      text-transform: uppercase;
+      dominant-baseline: central
+    }
+    </style>
+  `
+]
+
 
 // var json = {
 //   vertices: [0.5, 0.45, 0.8, 0.363, 0.44, 0.33, 0.4, 0.35],
@@ -155,10 +154,10 @@ class Radar {
                     svg: ['svg', { class: '-radar', width, height, viewBox }, '', ''],
                     g: ['g', '', '', '']
                   }
-    var svg       = new Tag(svgProps['svg']).get()
-    var g         = new Tag(svgProps['g']).get()
+    var svg       = new TagNS(svgProps['svg']).get()
+    var g         = new TagNS(svgProps['g']).get()
     Object.keys(this.grids).map(key => {
-      var key_el = new Tag(this.grids[key]).get()
+      var key_el = new TagNS(this.grids[key]).get()
       g.appendChild(key_el)
     })
     svg.appendChild(g)
@@ -304,12 +303,20 @@ class RGraph extends HTMLElement {
     super()
 
     this.attachShadow({ mode: 'open' })
-    this.shadowRoot.appendChild(styles.content)
-    this.appendParent()
+    this.render()
+    // we append child to this.shadowRoot here
+  }
 
+  render() {
+    TagNS.appendMany2One([this.styles(), this.html()], this.shadowRoot)
     this.el = this.shadowRoot.querySelector('.-chart')
     new Radar(this.json(this.el))
-    // we append child to this.shadowRoot here
+  }
+
+  styles() {
+    var styles = document.createElement('template')
+    styles.innerHTML = styleGraph[0]
+    return styles.content
   }
 
   json(el) {
@@ -317,6 +324,7 @@ class RGraph extends HTMLElement {
       vertices: this.vertices,
       percents: [1, 0.8, 0.6, 0.4, 0.2, 0],
       colors: ['#94c277', '#bee894', '#f3f2a2', '#f1c354', '#f07377', '#000'],
+      // colors: ['#00FF00', '#7FFF00', '#FFFF00', '#FFFF00', '#FF0000', '#000'],
       size: this.vertices.length,
       width: 320,
       height: 320,
@@ -325,11 +333,10 @@ class RGraph extends HTMLElement {
     }
   }
 
-  appendParent() {
+  html() {
     var radarEl = document.createElement('div')
     radarEl.className = '-chart'
-    this.shadowRoot.appendChild(radarEl)
-    // console.log('from build, list is', this.list instanceof Array)
+    return radarEl
   }
 
   static get observedAttributes() {
